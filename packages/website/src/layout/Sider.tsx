@@ -62,8 +62,8 @@ function renderChildren(
   // If there is a readme, show the files on the left sidebar
   let parentSelectedId = false;
   let hasReadMeFile = false;
-  for (const item of files) {
-      if (item.name?.toLowerCase() === 'readme') {
+  for (const file of files) {
+      if (file.name?.toLowerCase() === 'readme') {
         hasReadMeFile = true;
       }
       if (parentId === selectedId) { // } && item.mimeType !== MimeTypes.GoogleFolder) {
@@ -120,11 +120,12 @@ function renderChildren(
         isExpanded: expanded?.has(file.id ?? ''),
         onToggle: handleToggle,
         label,
-        value: file as any,
+        value: file.id!,
+        onSelect: selectFile(file),
       };
       if ((childrenNode?.length ?? 0) > 0) {
         return (
-          <TreeNode key={file.id} id={file.id} {...nodeProps}>
+          <TreeNode key={file.id} {...nodeProps}>
             {childrenNode}
           </TreeNode>
         );
@@ -153,6 +154,10 @@ function renderChildren(
     }
 }
 
+function selectFile(file: gapi.client.drive.File) {
+  return () => { mdLink.handleFileLinkClick(file); }
+}
+
 function Sider_({ isExpanded = true }: { isExpanded?: boolean }) {
   const dispatch = useDispatch();
 
@@ -165,13 +170,6 @@ function Sider_({ isExpanded = true }: { isExpanded?: boolean }) {
   const headers = useSelector(selectHeaders);
 
   const id = useSelector(selectActiveId) ?? getConfig().REACT_APP_ROOT_ID;
-
-  const handleSelect = useCallback((_ev, payload) => {
-    // not present for a file listing
-    if (payload.value) {
-      mdLink.handleFileLinkClick(payload.value);
-    }
-  }, []);
 
   const handleToggle = useCallback(
     (_, node: TreeNodeProps) => {
@@ -225,7 +223,7 @@ function Sider_({ isExpanded = true }: { isExpanded?: boolean }) {
         </div>
       )}
       {!loading && !error && (
-        <TreeView label="Table of Content" selected={selected} onSelect={handleSelect} active={id}>
+        <TreeView label="Table of Content" selected={selected} active={id}>
           {renderChildren(
             id,
             mapIdToFile,
