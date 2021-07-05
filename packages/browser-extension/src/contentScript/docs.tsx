@@ -22,6 +22,7 @@ type TreePathItem = {
 type FileInfo = {
   isOrphanAndOwner?: boolean;
   parentItems?: Array<TreePathItem>;
+  privateOwners?: gapi.client.drive.User[];
 };
 
 function buildWikiUrl(drive: ManifestDrive, id: string) {
@@ -54,7 +55,10 @@ async function loadFileInfo(fileId: string, token: Token): Promise<FileInfo | un
     log.info(
       'File does not have a drive id, maybe the owner did not put it in the Wiki, skip listing parents'
     );
-    return {};
+    const orgOwners = file.owners?.filter((owner) => owner.emailAddress?.split("@")?.[1] === manifest?.data.gapiHostedDomain)
+    return {
+      privateOwners: orgOwners
+    };
   }
 
   let discoveredDrive: ManifestDrive | undefined;
@@ -221,6 +225,12 @@ function App(props: { id: string }) {
             );
           })}
         </div>
+      )}
+      {Boolean(fi && fi?.privateOwners?.length) && (
+        <span className={cx(styles.tag, styles.warning)}>
+          <WarningAltFilled16 style={{ marginRight: 6 }} />
+          Not in shared drive.
+        </span>
       )}
     </>
   );
