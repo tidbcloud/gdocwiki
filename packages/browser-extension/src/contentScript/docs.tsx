@@ -81,7 +81,10 @@ async function loadFileInfo(fileId: string, token: Token): Promise<FileInfo | un
 
   // Now we know the drive of the file, let's list parents.
   log.info(`Listing parents for file ${fileId}`);
-  const parents: Array<TreePathItem> = [];
+  const parents: Array<TreePathItem> = [{
+    name: file.name!,
+    url: buildWikiUrl(discoveredDrive, file.id!),
+  }];
   const visitedParentIds = new Set<string>();
   let currentFile = file;
   while (true) {
@@ -212,7 +215,7 @@ function App(props: { id: string }) {
       )}
       {Boolean(fi && fi.parentItems) && (
         <div className={styles.wikiTree}>
-          {fi?.parentItems?.map((pi) => {
+          {fi?.parentItems?.slice(0, -3).map((pi) => {
             return (
               <>
                 <a href={pi.url} target="_blank" rel="noreferrer" className={styles.wikiTreeItem}>
@@ -224,6 +227,16 @@ function App(props: { id: string }) {
               </>
             );
           })}
+          {fi?.parentItems?.slice(-2,-1).map((pi) => { return (
+            <a href={pi.url} target="_blank" rel="noreferrer" className={styles.wikiTreeItem}>
+              {pi.name}
+            </a>
+          )})}
+          {fi?.parentItems?.slice(-1,).map((pi) => { return (
+            <a href={pi.url} target="_blank" rel="noreferrer" className={styles.wikiTreeItem}>
+              <ChevronRight16 />
+            </a>
+          )})}
         </div>
       )}
       {Boolean(fi && fi?.privateOwners?.length) && (
